@@ -80,20 +80,30 @@ function MissionCompleted:In()
 		found1 = strfind(self.Mission, "CV0", 1, 1);
 		found2 = strfind(self.Mission, "AS0", 1, 1);
 		if (found ~= nil) then
-			CFCXObjectiveHudManager_GetInstance():PushNewObjective("Mission", "MikesPlace", "MISSION_CONCLUDED", -1, -1, 5);
-			CDominoSoundManager_GetInstance():PlaySound(GetLocalPlayerId(), "0x004f014b", 11, self, "DummyFunction");
-			AddDiamonds(20);
-			Globals.MASTER_GameGlobals.DiamondCounter = Globals.MASTER_GameGlobals.DiamondCounter + 20;
+			-- MODIFIED: Only give reward and completion message if debriefing has been completed
+			-- If the objective was just completed, wait for the player to return to the buddy for debriefing
+			if (Globals.MASTER_GameGlobals.BSQ_MissionDebriefingStarted == 1) then
+				CFCXObjectiveHudManager_GetInstance():PushNewObjective("Mission", "MikesPlace", "MISSION_CONCLUDED", -1, -1, 5);
+				CDominoSoundManager_GetInstance():PlaySound(GetLocalPlayerId(), "0x004f014b", 11, self, "DummyFunction");
+				AddDiamonds(20);
+				Globals.MASTER_GameGlobals.DiamondCounter = Globals.MASTER_GameGlobals.DiamondCounter + 20;
 
-			-- Update 3.5: Add sidequest mission completed logic to fix an issue where buddy history would sometimes not update after completing a BSQ mission
-			GetBuddiesManager():SetSidequestMissionState("Accepted", Globals.MASTER_GameGlobals.BSQBuddyName);
-			GetBuddiesManager():SetSidequestMissionState("Succeeded", "");
+				-- Update 3.5: Add sidequest mission completed logic to fix an issue where buddy history would sometimes not update after completing a BSQ mission
+				GetBuddiesManager():SetSidequestMissionState("Accepted", Globals.MASTER_GameGlobals.BSQBuddyName);
+				GetBuddiesManager():SetSidequestMissionState("Succeeded", "");
 
-			-- Update 3.5: Unlock golden AK-47 after completing BSQ missions
-			Globals.MASTER_GameGlobals.BSQMissionsCompleted = Globals.MASTER_GameGlobals.BSQMissionsCompleted + 1;
-			if (Globals.MASTER_GameGlobals.BSQMissionsCompleted == 10) then
-				GetWeaponBazaar():UnlockItem("goldak47 crate");
-				CFCXObjectiveHudManager_GetInstance():PushNewObjective("Mission", "WeaponShop", "GoldAKAvailable", -1, -1, 5);
+				-- Update 3.5: Unlock golden AK-47 after completing BSQ missions
+				Globals.MASTER_GameGlobals.BSQMissionsCompleted = Globals.MASTER_GameGlobals.BSQMissionsCompleted + 1;
+				if (Globals.MASTER_GameGlobals.BSQMissionsCompleted == 10) then
+					GetWeaponBazaar():UnlockItem("goldak47 crate");
+					CFCXObjectiveHudManager_GetInstance():PushNewObjective("Mission", "WeaponShop", "GoldAKAvailable", -1, -1, 5);
+				end
+			else
+				-- Objective just completed, player needs to return to buddy for debriefing
+				-- Update objective marker to point back to the buddy
+				CFCXObjectiveHudManager_GetInstance():PushNewObjective("Mission", "MikesPlace", "RETURN_TO_BUDDY", -1, -1, 5);
+				-- Set flag to indicate the main objective is complete and debriefing is needed
+				Globals.MASTER_GameGlobals.BSQ_MainObjectiveComplete = 1;
 			end
 		elseif (found1 ~= nil) then
 			CFCXObjectiveHudManager_GetInstance():PushNewObjective("Mission", "WeaponShop", "MISSION_CONCLUDED", -1, -1, 5);
