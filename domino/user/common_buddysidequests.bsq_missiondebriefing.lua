@@ -14,6 +14,7 @@
 -- 
 
 
+
 export = {
 };
 
@@ -202,6 +203,8 @@ end;
 
 function export:f_8_Out()
 	self = self._graph;
+	-- MODIFIED: Set flag that debriefing has started so reward will be given
+	Globals.MASTER_GameGlobals.BSQ_MissionDebriefingStarted = 1;
 	self:Succeeded();
 end;
 
